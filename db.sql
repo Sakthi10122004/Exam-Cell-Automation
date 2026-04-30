@@ -1,5 +1,4 @@
-CREATE DATABASE `exam_cell_automation`;
-USE `exam_cell_automation`;
+
 --
 
 -- --------------------------------------------------------
