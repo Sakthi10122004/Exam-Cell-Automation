@@ -4,26 +4,26 @@ include 'db_config.php';
 
 // Session Timeout Mechanism
 $timeout_duration = 1800; // 30 minutes in seconds
-if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout_duration) {
-    session_unset();
-    session_destroy();
-    header("Location: login.php");
-    exit();
+// Generate CSRF token if it doesn't exist
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
-$_SESSION['last_activity'] = time(); // Update last activity timestamp
 
-// Role Check: Restrict registration to existing admins ONLY IF an admin already exists
-$admin_check = $conn->query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
-if ($admin_check->num_rows > 0) {
-    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+// Check if ANY superadmins or admins exist
+$stmt = $conn->prepare("SELECT COUNT(*) as count FROM users WHERE role IN ('admin', 'superadmin')");
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_assoc();
+$adminCount = $row['count'];
+$stmt->close();
+
+$isFirstUser = ($adminCount == 0);
+
+if (!$isFirstUser) {
+    if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'superadmin'])) {
         header("Location: login.php");
         exit();
     }
-}
-
-// Generate CSRF Token
-if (!isset($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -37,10 +37,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $role = $_POST['role'];
     $name = trim($_POST['name']);
 
-    // Fix 1: Role Restriction Feedback (already restricted, but improve feedback)
-    if (!in_array($role, ['admin', 'teacher'])) {
-        echo "<script>alert('Invalid role selected! Only Admin or Teacher roles are allowed.'); window.history.back();</script>";
-        exit();
+    if ($isFirstUser) {
+        $role = 'superadmin';
+    } else {
+        $role = $_POST['role'];
+        if (!in_array($role, ['admin', 'teacher'])) {
+            echo "<script>alert('Invalid role selected! Only Admin or Teacher roles are allowed.'); window.history.back();</script>";
+            exit();
+        }
     }
 
     // Fix 2: Duplicate Username Handling
@@ -108,6 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
                 
+                <?php if (!$isFirstUser): ?>
                 <div class="input-group">
                     <label for="role">Account Role</label>
                     <div class="input-wrapper">
@@ -117,6 +122,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </select>
                     </div>
                 </div>
+                <?php else: ?>
+                <input type="hidden" name="role" value="superadmin">
+                <div class="input-group">
+                    <label for="role">Account Role</label>
+                    <div class="input-wrapper">
+                        <input type="text" value="Super Administrator (Initial Setup)" disabled>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
             
             <div class="input-group">

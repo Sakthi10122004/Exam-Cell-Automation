@@ -19,7 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['role'] = $user['role'];
             $_SESSION['username'] = $username; // Store username in session
 
-            if ($user['role'] == 'admin') {
+            if ($user['role'] == 'superadmin') {
+                header("Location: super_admin_dashboard.php");
+            } elseif ($user['role'] == 'admin') {
                 header("Location: admin_dashboard.php");
             } elseif ($user['role'] == 'teacher') {
                 header("Location: teacher_dashboard.php");
