@@ -12,10 +12,13 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
 }
 $_SESSION['last_activity'] = time(); // Update last activity timestamp
 
-// Role Check: Restrict registration to existing admins
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
-    exit();
+// Role Check: Restrict registration to existing admins ONLY IF an admin already exists
+$admin_check = $conn->query("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
+if ($admin_check->num_rows > 0) {
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+        header("Location: login.php");
+        exit();
+    }
 }
 
 // Generate CSRF Token
