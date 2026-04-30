@@ -1,8 +1,8 @@
 <?php
-$host = 'localhost';
-$db = 'exam_cell_automation';
-$user = 'root';
-$pass = '';
+$host = 'sql301.infinityfree.com';
+$db = 'if0_41140025_exam_cell_automation';
+$user = 'if0_41140025';
+$pass = 'Sakthi10122004';
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 try {
