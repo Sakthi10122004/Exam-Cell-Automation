@@ -19,4 +19,4 @@ jobs:
           username: if0_41140025
           password: Sakthi10122004
           port: 21
-          server-dir: /htdocs/
+          server-dir: autoexamcell.gt.tc/htdocs/
